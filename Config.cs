@@ -41,12 +41,20 @@ namespace Config
         private Encoding _Encoding;
         private string _Path = null;
 
+        /// <summary>
+        /// Initializes an empty config
+        /// </summary>
         public Config()
         {
             _Sections = new List<ConfigSection>();
             _Encoding = Encoding.UTF8;
         }
 
+        /// <summary>
+        /// Initializes a config with the content of the given file
+        /// </summary>
+        /// <param name="Path">Path to config file</param>
+        /// <param name="ConfigEncoding">Encoding of the config file</param>
         public Config(string Path, Encoding ConfigEncoding = null) : this()
         {
             _Encoding = ConfigEncoding == null ? Encoding.UTF8 : ConfigEncoding;
@@ -117,6 +125,21 @@ namespace Config
             }
         }
 
+
+        /// <summary>
+        /// Initializes a config with the content of the given file
+        /// </summary>
+        /// <param name="Path">Path to config file</param>
+        public static implicit operator Config(string Path)
+        {
+            return new Config(Path);
+        }
+
+        /// <summary>
+        /// Adds a section to the config
+        /// </summary>
+        /// <param name="SectionName">Name of the section</param>
+        /// <returns>true on success, false if the section already exists</returns>
         public bool Add(string SectionName)
         {
             if(!HasSection(SectionName))
@@ -130,6 +153,13 @@ namespace Config
             }
         }
 
+        /// <summary>
+        /// Adds a section with entry to the config
+        /// </summary>
+        /// <param name="SectionName">Name of the section</param>
+        /// <param name="EntryName">Name of the entry</param>
+        /// <param name="Value">Value of the entry</param>
+        /// <returns>true on success, false if the section or entry already exists</returns>
         public bool Add(string SectionName, string EntryName, string Value)
         {
             if (!HasSection(SectionName))
@@ -152,6 +182,11 @@ namespace Config
             }
         }
 
+        /// <summary>
+        /// Deletes a section from config
+        /// </summary>
+        /// <param name="SectionName">Name of the section</param>
+        /// <returns>true on success, false if the section doesn't exist</returns>
         public bool Delete(string SectionName)
         {
             if(HasSection(SectionName))
@@ -165,8 +200,17 @@ namespace Config
             }
         }
 
+        /// <summary>
+        /// Saves the config to the initial config path. It will return false if the config is not initialized with a path.
+        /// </summary>
+        /// <returns>true on success, false if the config is not initialized with a path or the config file can't be written</returns>
         public bool Save()
         {
+            if(_Path == null)
+            {
+                return false;
+            }
+
             StringBuilder output = new StringBuilder();
 
             output.AppendLine($"# Saved ({DateTime.Now.ToString()})");
@@ -193,12 +237,21 @@ namespace Config
             }
         }
 
+        /// <summary>
+        /// Saves the config to the given path
+        /// </summary>
+        /// <returns>true on success, false if the config file can't be written</returns>
         public bool Save(string Path)
         {
             _Path = Path;
             return Save();
         }
 
+        /// <summary>
+        /// Returns the section
+        /// </summary>
+        /// <param name="SectionName">Name of the section</param>
+        /// <returns>Section-Object on success, null on fail</returns>
         public IConfigSection this[string SectionName]
         {
             get
@@ -215,11 +268,22 @@ namespace Config
             
         }
         
+        /// <summary>
+        /// Checks if the section exists
+        /// </summary>
+        /// <param name="SectionName">Name of the section</param>
+        /// <returns>true if it exists, false if not</returns>
         public bool HasSection(string SectionName)
         {
             return (from x in _Sections where x.Name.ToLower() == SectionName.ToLower() select x).Count() == 1;
         }
 
+        /// <summary>
+        /// Checks if the entry exists
+        /// </summary>
+        /// <param name="SectionName">Name of the section</param>
+        /// <param name="EntryName">Name of the entry</param>
+        /// <returns>true if it exists, false if not</returns>
         public bool HasEntry(string SectionName, string EntryName)
         {
             if ((from x in _Sections where x.Name.ToLower() == SectionName.ToLower() select x).Count() == 1)
@@ -258,7 +322,6 @@ namespace Config
                 get { return _Name; }
                 set { _Name = value.ToLower(); }
             }
-
 
             public IConfigEntry[] Entrys
             {
@@ -381,7 +444,6 @@ namespace Config
                 return DateTime.Parse(_Value);
             }
         }
-        
     }
 
 }
