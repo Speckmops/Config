@@ -35,10 +35,22 @@ using System.IO;
 
 namespace Config
 {
+    /// <summary>
+    /// A lightweight class for read/write/work with Config.ini's
+    /// </summary>
     public class Config
     {
+        /// <summary>
+        /// List of sections
+        /// </summary>
         private List<ConfigSection> _Sections;
+        /// <summary>
+        /// Encoding of config content text
+        /// </summary>
         private Encoding _Encoding;
+        /// <summary>
+        /// Path to config file
+        /// </summary>
         private string _Path = null;
 
         /// <summary>
@@ -135,11 +147,18 @@ namespace Config
             return new Config(Path);
         }
 
+        /// <summary>
+        /// Returns the content of the config as string
+        /// </summary>
+        /// <param name="config">Config-Object</param>
         public static implicit operator string(Config config)
         {
             return config.GenerateConfigContent();
         }
 
+        /// <summary>
+        /// Returns the content of the config as string
+        /// </summary>
         public override string ToString()
         {
             return this.GenerateConfigContent();
@@ -233,7 +252,6 @@ namespace Config
             }
         }
 
-
         /// <summary>
         /// Saves the config to the given path
         /// </summary>
@@ -293,6 +311,10 @@ namespace Config
             }
         }
 
+        /// <summary>
+        /// Generates the config-text-content
+        /// </summary>
+        /// <returns>Config content as string</returns>
         private string GenerateConfigContent()
         {
             StringBuilder output = new StringBuilder();
@@ -314,28 +336,53 @@ namespace Config
             return output.ToString();
         }
 
+        /// <summary>
+        /// A section of a config
+        /// </summary>
         public class ConfigSection
         {
+            /// <summary>
+            /// Name of the section
+            /// </summary>
             private string _Name;
+            /// <summary>
+            /// Entrys of the seciton
+            /// </summary>
             private List<ConfigEntry> _Entrys;
 
+            /// <summary>
+            /// Name of the section
+            /// </summary>
             public string Name
             {
                 get { return _Name; }
                 set { _Name = value.ToLower(); }
             }
 
+            /// <summary>
+            /// Entrys of the seciton
+            /// </summary>
             public ConfigEntry[] Entrys
             {
                 get { return _Entrys.ToArray(); }
             }
 
+            /// <summary>
+            /// Initializes a config-section with the given name
+            /// </summary>
+            /// <param name="Name">Name of the section</param>
             public ConfigSection(string Name)
             {
                 _Name = Name.ToLower();
                 _Entrys = new List<ConfigEntry>();
             }
 
+            /// <summary>
+            /// Adds an entry to the section
+            /// </summary>
+            /// <param name="EntryName">Name of the entry</param>
+            /// <param name="Value">Value of the entry</param>
+            /// <returns>true on success, false if it already exists</returns>
             public bool Add(string EntryName, object Value)
             {
                 if(!HasEntry(EntryName))
@@ -349,6 +396,11 @@ namespace Config
                 }    
             }
 
+            /// <summary>
+            /// Deletes an entry from the section
+            /// </summary>
+            /// <param name="EntryName">Name of the entry</param>
+            /// <returns>true on success, false if it doesn't exist</returns>
             public bool Delete(string EntryName)
             {
                 if (HasEntry(EntryName))
@@ -362,11 +414,21 @@ namespace Config
                 }
             }
 
+            /// <summary>
+            /// Check if the section has an entry with the given name
+            /// </summary>
+            /// <param name="EntryName">Name of the entry</param>
+            /// <returns>true/false</returns>
             public bool HasEntry(string EntryName)
             {
                 return (from x in _Entrys where x.Name.ToLower() == EntryName.ToLower() select x).Count() == 1;
             }
 
+            /// <summary>
+            /// Returns the config-entry
+            /// </summary>
+            /// <param name="EntryName">Name of the entry</param>
+            /// <returns>Config-entry-Object on success, null on fail</returns>
             public ConfigEntry this[string EntryName]
             {
                 get
@@ -382,34 +444,62 @@ namespace Config
                 }
             }
         }
-
-
+        
+        /// <summary>
+        /// An entry of a config-section
+        /// </summary>
         public class ConfigEntry
         {
+            /// <summary>
+            /// Name of the entry
+            /// </summary>
             private string _Name;
+            /// <summary>
+            /// Value of the entry
+            /// </summary>
             private string _Value;
+
+            /// <summary>
+            /// Name of the entry
+            /// </summary>
             public string Name
             {
                 get { return _Name; }
                 set { _Name = value.ToLower(); }
             }
+            /// <summary>
+            /// Value of the entry
+            /// </summary>
             public string Value
             {
                 get { return _Value; }
                 set { _Value = value; }
             }
 
+            /// <summary>
+            /// Initializes a config-entry with the given name and value
+            /// </summary>
+            /// <param name="Name">Name of the entry</param>
+            /// <param name="Value">Value of the entry</param>
             public ConfigEntry(string Name, object Value)
             {
                 _Name = Name.ToLower();
                 _Value = Value.ToString();
             }
 
+            /// <summary>
+            /// Returns the config-entry value as string
+            /// </summary>
+            /// <returns>Value as string</returns>
             public override string ToString()
             {
                 return _Value;
             }
 
+            /// <summary>
+            /// Returns the config-entry value as integer
+            /// </summary>
+            /// <returns>Value as integer</returns>
             public int ToInt()
             {
                 int value;
@@ -424,6 +514,10 @@ namespace Config
                 }
             }
 
+            /// <summary>
+            /// Returns the config-entry value as long
+            /// </summary>
+            /// <returns>Value as long</returns>
             public long ToLong()
             {
                 long value;
@@ -438,11 +532,19 @@ namespace Config
                 }
             }
 
+            /// <summary>
+            /// Returns the config-entry value as bool
+            /// </summary>
+            /// <returns>Value as bool</returns>
             public bool ToBool()
             {
                 return _Value.ToLower() == "true" || _Value.ToLower() == "on" || _Value.ToLower() == "1" ? true : false;
             }
 
+            /// <summary>
+            /// Returns the config-entry value as short
+            /// </summary>
+            /// <returns>Value as short</returns>
             public short ToShort()
             {
                 short value;
@@ -457,11 +559,19 @@ namespace Config
                 }
             }
 
+            /// <summary>
+            /// Returns the config-entry value as chararray
+            /// </summary>
+            /// <returns>Value as chararray</returns>
             public char[] ToCharArray()
             {
                 return _Value.ToCharArray();
             }
 
+            /// <summary>
+            /// Returns the config-entry value as DateTime
+            /// </summary>
+            /// <returns>Value as DateTime</returns>
             public DateTime ToDateTime()
             {
                 DateTime value;
@@ -476,31 +586,55 @@ namespace Config
                 }
             }
 
+            /// <summary>
+            /// Returns the config-entry value as bool
+            /// </summary>
+            /// <param name="Entry">Config-entry-object</param>
             public static implicit operator bool(ConfigEntry Entry)
             {
                 return Entry.ToBool();
             }
 
+            /// <summary>
+            /// Returns the config-entry value as integer
+            /// </summary>
+            /// <param name="Entry">Config-entry-object</param>
             public static implicit operator int(ConfigEntry Entry)
             {
                 return Entry.ToInt();
             }
 
+            /// <summary>
+            /// Returns the config-entry value as string
+            /// </summary>
+            /// <param name="Entry">Config-entry-object</param>
             public static implicit operator string(ConfigEntry Entry)
             {
                 return Entry.ToString();
             }
 
+            /// <summary>
+            /// Returns the config-entry value as short
+            /// </summary>
+            /// <param name="Entry">Config-entry-object</param>
             public static implicit operator short(ConfigEntry Entry)
             {
                 return Entry.ToShort();
             }
 
+            /// <summary>
+            /// Returns the config-entry value as DateTime
+            /// </summary>
+            /// <param name="Entry">Config-entry-object</param>
             public static implicit operator DateTime(ConfigEntry Entry)
             {
                 return Entry.ToDateTime();
             }
 
+            /// <summary>
+            /// Returns the config-entry value as chararray
+            /// </summary>
+            /// <param name="Entry">Config-entry-object</param>
             public static implicit operator char[](ConfigEntry Entry)
             {
                 return Entry.ToCharArray();
