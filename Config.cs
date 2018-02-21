@@ -32,13 +32,14 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Collections;
 
 namespace Config
 {
     /// <summary>
     /// A lightweight class for read/write/work with Config.ini's
     /// </summary>
-    public class Config
+    public class Config : IEnumerable<Config.ConfigSection>
     {
         /// <summary>
         /// List of sections
@@ -52,6 +53,14 @@ namespace Config
         /// Path to config file
         /// </summary>
         private string _Path = null;
+
+        /// <summary>
+        /// Count of config-sections in this config
+        /// </summary>
+        public int Count
+        {
+            get { return _Sections.Count; }
+        }
 
         /// <summary>
         /// Initializes an empty config
@@ -282,7 +291,28 @@ namespace Config
             }
             
         }
-        
+
+        /// <summary>
+        /// Returns the section
+        /// </summary>
+        /// <param name="Index">Index of the section</param>
+        /// <returns>Section-Object on success, null on fail</returns>
+        public ConfigSection this[int Index]
+        {
+            get
+            {
+                if (Index >= 0 && Index < Count)
+                {
+                    return _Sections[Index];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+        }
+
         /// <summary>
         /// Checks if the section exists
         /// </summary>
@@ -337,9 +367,27 @@ namespace Config
         }
 
         /// <summary>
+        /// Returns enumerator
+        /// </summary>
+        /// <returns>Enumerator</returns>
+        public IEnumerator<ConfigSection> GetEnumerator()
+        {
+            return ((IEnumerable<ConfigSection>)_Sections).GetEnumerator();
+        }
+
+        /// <summary>
+        /// Returns enumerator
+        /// </summary>
+        /// <returns>Enumerator</returns>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IEnumerable<ConfigSection>)_Sections).GetEnumerator();
+        }
+
+        /// <summary>
         /// A section of a config
         /// </summary>
-        public class ConfigSection
+        public class ConfigSection : IEnumerable<Config.ConfigEntry>
         {
             /// <summary>
             /// Name of the section
@@ -349,6 +397,14 @@ namespace Config
             /// Entrys of the seciton
             /// </summary>
             private List<ConfigEntry> _Entrys;
+
+            /// <summary>
+            /// Count of config-entrys in this section
+            /// </summary>
+            public int Count
+            {
+                get { return _Entrys.Count; }
+            }
 
             /// <summary>
             /// Name of the section
@@ -385,7 +441,7 @@ namespace Config
             /// <returns>true on success, false if it already exists</returns>
             public bool Add(string EntryName, object Value)
             {
-                if(!HasEntry(EntryName))
+                if (!HasEntry(EntryName))
                 {
                     _Entrys.Add(new ConfigEntry(EntryName, Value));
                     return true;
@@ -393,7 +449,7 @@ namespace Config
                 else
                 {
                     return false;
-                }    
+                }
             }
 
             /// <summary>
@@ -425,6 +481,24 @@ namespace Config
             }
 
             /// <summary>
+            /// Returns enumerator
+            /// </summary>
+            /// <returns>Enumerator</returns>
+            public IEnumerator<ConfigEntry> GetEnumerator()
+            {
+                return ((IEnumerable<ConfigEntry>)_Entrys).GetEnumerator();
+            }
+
+            /// <summary>
+            /// Returns enumerator
+            /// </summary>
+            /// <returns>Enumerator</returns>
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return ((IEnumerable<ConfigEntry>)_Entrys).GetEnumerator();
+            }
+
+            /// <summary>
             /// Returns the config-entry
             /// </summary>
             /// <param name="EntryName">Name of the entry</param>
@@ -433,7 +507,7 @@ namespace Config
             {
                 get
                 {
-                    if((from x in _Entrys where x.Name.ToLower() == EntryName.ToLower() select x).Count() == 1)
+                    if ((from x in _Entrys where x.Name.ToLower() == EntryName.ToLower() select x).Count() == 1)
                     {
                         return (from x in _Entrys where x.Name.ToLower() == EntryName.ToLower() select x).First();
                     }
@@ -443,8 +517,30 @@ namespace Config
                     }
                 }
             }
+
+            /// <summary>
+            /// Returns the entry
+            /// </summary>
+            /// <param name="Index">Index of the entry</param>
+            /// <returns>Entry-Object on success, null on fail</returns>
+            public ConfigEntry this[int Index]
+            {
+                get
+                {
+                    if (Index >= 0 && Index < Count)
+                    {
+                        return _Entrys[Index];
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+
         }
-        
+
+
         /// <summary>
         /// An entry of a config-section
         /// </summary>
@@ -522,7 +618,7 @@ namespace Config
             {
                 long value;
 
-                if(long.TryParse(_Value, out value))
+                if (long.TryParse(_Value, out value))
                 {
                     return value;
                 }
@@ -635,7 +731,7 @@ namespace Config
             /// Returns the config-entry value as chararray
             /// </summary>
             /// <param name="Entry">Config-entry-object</param>
-            public static implicit operator char[](ConfigEntry Entry)
+            public static implicit operator char[] (ConfigEntry Entry)
             {
                 return Entry.ToCharArray();
             }
