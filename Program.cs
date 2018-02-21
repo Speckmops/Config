@@ -38,10 +38,10 @@ namespace Config
           
             c.Add("Login", "Username", "par0noid");
             c.Add("Login", "Password", "secret");
-            c.Add("Windows", "Trayicon", "on");
-            c.Add("Game", "Points", "1234");
+            c.Add("Windows", "Trayicon", true);
+            c.Add("Game", "Points", 1234);
 
-            if (c["Windows"]["Trayicon"].ToBool())
+            if (c["Windows"]["Trayicon"])
             {
                 Console.WriteLine($"{c["Login"]["Username"]} has an activated trayicon");
             }

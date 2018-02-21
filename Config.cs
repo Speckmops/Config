@@ -135,6 +135,16 @@ namespace Config
             return new Config(Path);
         }
 
+        public static implicit operator string(Config config)
+        {
+            return config.GenerateConfigContent();
+        }
+
+        public override string ToString()
+        {
+            return this.GenerateConfigContent();
+        }
+
         /// <summary>
         /// Adds a section to the config
         /// </summary>
@@ -160,7 +170,7 @@ namespace Config
         /// <param name="EntryName">Name of the entry</param>
         /// <param name="Value">Value of the entry</param>
         /// <returns>true on success, false if the section or entry already exists</returns>
-        public bool Add(string SectionName, string EntryName, string Value)
+        public bool Add(string SectionName, string EntryName, object Value)
         {
             if (!HasSection(SectionName))
             {
@@ -211,31 +221,18 @@ namespace Config
                 return false;
             }
 
-            StringBuilder output = new StringBuilder();
-
-            output.AppendLine($"# Saved ({DateTime.Now.ToString()})");
-
-            foreach (ConfigSection section in _Sections)
-            {
-                output.AppendLine();
-                output.AppendLine($"[{section.Name}]");
-                output.AppendLine();
-
-                foreach(ConfigEntry entry in section.Entrys)
-                {
-                    output.AppendLine($"{entry.Name} = {entry.Value}");
-                }
-            }
+            string output = GenerateConfigContent();
 
             try
             {
-                File.WriteAllText(_Path, output.ToString(), _Encoding);
+                File.WriteAllText(_Path, output, _Encoding);
                 return true;
             }
             catch {
                 return false;
             }
         }
+
 
         /// <summary>
         /// Saves the config to the given path
@@ -252,7 +249,7 @@ namespace Config
         /// </summary>
         /// <param name="SectionName">Name of the section</param>
         /// <returns>Section-Object on success, null on fail</returns>
-        public IConfigSection this[string SectionName]
+        public ConfigSection this[string SectionName]
         {
             get
             {
@@ -296,23 +293,28 @@ namespace Config
             }
         }
 
-        public interface IConfigSection
+        private string GenerateConfigContent()
         {
-            string Name { get; set; }
-            bool Add(string EntryName, string Value);
-            bool HasEntry(string EntryName);
+            StringBuilder output = new StringBuilder();
 
-            bool Delete(string EntryName);
+            output.AppendLine($"# Saved ({DateTime.Now.ToString()})");
 
-            IConfigEntry[] Entrys { get; }
-            IConfigEntry this[string EntryName]
+            foreach (ConfigSection section in _Sections)
             {
-                get;
+                output.AppendLine();
+                output.AppendLine($"[{section.Name}]");
+                output.AppendLine();
+
+                foreach (ConfigEntry entry in section.Entrys)
+                {
+                    output.AppendLine($"{entry.Name} = {entry.Value}");
+                }
             }
 
+            return output.ToString();
         }
 
-        protected class ConfigSection : IConfigSection
+        public class ConfigSection
         {
             private string _Name;
             private List<ConfigEntry> _Entrys;
@@ -323,7 +325,7 @@ namespace Config
                 set { _Name = value.ToLower(); }
             }
 
-            public IConfigEntry[] Entrys
+            public ConfigEntry[] Entrys
             {
                 get { return _Entrys.ToArray(); }
             }
@@ -334,7 +336,7 @@ namespace Config
                 _Entrys = new List<ConfigEntry>();
             }
 
-            public bool Add(string EntryName, string Value)
+            public bool Add(string EntryName, object Value)
             {
                 if(!HasEntry(EntryName))
                 {
@@ -365,7 +367,7 @@ namespace Config
                 return (from x in _Entrys where x.Name.ToLower() == EntryName.ToLower() select x).Count() == 1;
             }
 
-            public IConfigEntry this[string EntryName]
+            public ConfigEntry this[string EntryName]
             {
                 get
                 {
@@ -381,19 +383,8 @@ namespace Config
             }
         }
 
-        public interface IConfigEntry
-        {
-            string Name { get; set; }
-            string Value { get; set; }
-            string ToString();
-            int ToInt();
-            bool ToBool();
-            long ToLong();
-            short ToShort();
-            DateTime ToDateTime();
-        }
 
-        protected class ConfigEntry : IConfigEntry
+        public class ConfigEntry
         {
             private string _Name;
             private string _Value;
@@ -408,10 +399,10 @@ namespace Config
                 set { _Value = value; }
             }
 
-            public ConfigEntry(string Name, string Value)
+            public ConfigEntry(string Name, object Value)
             {
                 _Name = Name.ToLower();
-                _Value = Value;
+                _Value = Value.ToString();
             }
 
             public override string ToString()
@@ -421,12 +412,30 @@ namespace Config
 
             public int ToInt()
             {
-                return int.Parse(_Value);
+                int value;
+
+                if (int.TryParse(_Value, out value))
+                {
+                    return value;
+                }
+                else
+                {
+                    return 0;
+                }
             }
 
             public long ToLong()
             {
-                return long.Parse(_Value);
+                long value;
+
+                if(long.TryParse(_Value, out value))
+                {
+                    return value;
+                }
+                else
+                {
+                    return 0;
+                }
             }
 
             public bool ToBool()
@@ -436,12 +445,65 @@ namespace Config
 
             public short ToShort()
             {
-                return short.Parse(_Value);
+                short value;
+
+                if (short.TryParse(_Value, out value))
+                {
+                    return value;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+
+            public char[] ToCharArray()
+            {
+                return _Value.ToCharArray();
             }
 
             public DateTime ToDateTime()
             {
-                return DateTime.Parse(_Value);
+                DateTime value;
+
+                if (DateTime.TryParse(_Value, out value))
+                {
+                    return value;
+                }
+                else
+                {
+                    return new DateTime();
+                }
+            }
+
+            public static implicit operator bool(ConfigEntry Entry)
+            {
+                return Entry.ToBool();
+            }
+
+            public static implicit operator int(ConfigEntry Entry)
+            {
+                return Entry.ToInt();
+            }
+
+            public static implicit operator string(ConfigEntry Entry)
+            {
+                return Entry.ToString();
+            }
+
+            public static implicit operator short(ConfigEntry Entry)
+            {
+                return Entry.ToShort();
+            }
+
+            public static implicit operator DateTime(ConfigEntry Entry)
+            {
+                return Entry.ToDateTime();
+            }
+
+            public static implicit operator char[](ConfigEntry Entry)
+            {
+                return Entry.ToCharArray();
             }
         }
     }
