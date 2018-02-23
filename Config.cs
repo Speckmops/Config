@@ -743,8 +743,6 @@ namespace par0noid
             /// <param name="Entry">Config-entry-object</param>
             public static implicit operator char[] (ConfigEntry Entry) => Entry.ToCharArray();
 
-
-
         }
     }
 
