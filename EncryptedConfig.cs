@@ -231,7 +231,7 @@ namespace par0noid
                 {
                     using (CryptoStream cs = new CryptoStream(ms, aes_decryptor, CryptoStreamMode.Read))
                     {
-                        byte[] buffer = new byte[2];
+                        byte[] buffer = new byte[1024];
 
                         int readed = 0;
 
