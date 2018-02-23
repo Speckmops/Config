@@ -28,25 +28,46 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using System;
 
-namespace Config
+namespace par0noid
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Config c = new Config();      
-            
-            c.Add("Login", "Username", "par0noid");
-            c.Add("Login", "Password", "secret");
-            c.Add("Windows", "Trayicon", true);
-            c.Add("Game", "Points", 1234);
-            
-            if (c["Windows"]["Trayicon"])
+            //Create a normal config
+            Config ConfigObject = new Config();
+
+            //Also possible:
+            //Config ConfigObject = new Config(@"C:\config.ini");
+            //Config ConfigObject = @"C:\config.ini";
+            //Config ConfigObject = new System.IO.FileInfo(@"C:\config.ini");
+
+            //Add sections and values
+            ConfigObject.Add("Login", "Username", "par0noid");
+            ConfigObject.Add("Login", "Password", "secret");
+            ConfigObject.Add("Windows", "Trayicon", true);
+            ConfigObject.Add("Game", "Points", 1234);
+
+            ConfigObject["Windows"].Add("Color", "black"); //Add entry to a specific section
+
+            ConfigObject["Game"]["Points"].Value = 1000; //Since Value is an object setter, it calls ToString() if you want to set it
+                
+            if (ConfigObject["Windows"]["Trayicon"]) //automatic conversion to bool (true, on and 1)
             {
-                Console.WriteLine($"{c["Login"]["Username"]} has an activated trayicon");
+                Console.WriteLine($"{ConfigObject["Login"]["Username"]} has an activated trayicon");
             }
 
-            c.Save($@"{Environment.CurrentDirectory}\Config.ini");
+            //Save the config
+            ConfigObject.Save($@"{Environment.CurrentDirectory}\Config.ini");
+
+            //Use can also use an encrypted config. It is also possible to convert a normal config to an encrypted one
+            EncryptedConfig ConfigEncrypted = EncryptedConfig.CreateFromConfig("secret", ConfigObject);
+
+            //Working with the encrypted works like the normal config
+            ConfigEncrypted.Add("Test", "Foo", "Bar");
+
+            //Save the encrypted config to another file
+            ConfigEncrypted.Save($@"{Environment.CurrentDirectory}\Config_encrypted.ini");
 
             Console.ReadKey();
         }

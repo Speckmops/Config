@@ -34,7 +34,7 @@ using System.Text.RegularExpressions;
 using System.IO;
 using System.Collections;
 
-namespace Config
+namespace par0noid
 {
     /// <summary>
     /// A lightweight class for read/write/work with Config.ini's
@@ -45,22 +45,24 @@ namespace Config
         /// List of sections
         /// </summary>
         private List<ConfigSection> _Sections;
-        /// <summary>
-        /// Encoding of config content text
-        /// </summary>
+        
         private Encoding _Encoding;
-        /// <summary>
-        /// Path to config file
-        /// </summary>
         private string _Path = null;
 
         /// <summary>
         /// Count of config-sections in this config
         /// </summary>
-        public int Count
-        {
-            get { return _Sections.Count; }
-        }
+        public int Count => _Sections.Count;
+
+        /// <summary>
+        /// Encoding of config content text
+        /// </summary>
+        public Encoding Encoding => _Encoding;
+        
+        /// <summary>
+        /// Path to config file
+        /// </summary>
+        public string Path => _Path;
 
         /// <summary>
         /// Initializes an empty config
@@ -87,7 +89,7 @@ namespace Config
             {
                 ConfigLines = File.ReadAllLines(Path, _Encoding);
             }
-            catch { throw new FileNotFoundException("File not found"); }
+            catch { throw new FileNotFoundException("Cannot read configfile"); }
 
             _Path = Path;
 
@@ -151,27 +153,24 @@ namespace Config
         /// Initializes a config with the content of the given file
         /// </summary>
         /// <param name="Path">Path to config file</param>
-        public static implicit operator Config(string Path)
-        {
-            return new Config(Path);
-        }
+        public static implicit operator Config(string Path) => new Config(Path);
+
+        /// <summary>
+        /// Initializes a config with the content of the given file
+        /// </summary>
+        /// <param name="fileInfo">FileInfo-Object</param>
+        public static implicit operator Config(FileInfo fileInfo) => new Config(fileInfo.FullName);
 
         /// <summary>
         /// Returns the content of the config as string
         /// </summary>
         /// <param name="config">Config-Object</param>
-        public static implicit operator string(Config config)
-        {
-            return config.GenerateConfigContent();
-        }
+        public static implicit operator string(Config config) => config.GenerateConfigContent();
 
         /// <summary>
         /// Returns the content of the config as string
         /// </summary>
-        public override string ToString()
-        {
-            return this.GenerateConfigContent();
-        }
+        public override string ToString() => GenerateConfigContent();
 
         /// <summary>
         /// Adds a section to the config
@@ -242,21 +241,22 @@ namespace Config
         /// Saves the config to the initial config path. It will return false if the config is not initialized with a path.
         /// </summary>
         /// <returns>true on success, false if the config is not initialized with a path or the config file can't be written</returns>
-        public bool Save()
+        public virtual bool Save()
         {
             if(_Path == null)
             {
                 return false;
             }
 
-            string output = GenerateConfigContent();
+            string Content = GenerateConfigContent();
 
             try
             {
-                File.WriteAllText(_Path, output, _Encoding);
+                File.WriteAllText(_Path, Content, _Encoding);
                 return true;
             }
-            catch {
+            catch
+            {
                 return false;
             }
         }
@@ -265,7 +265,7 @@ namespace Config
         /// Saves the config to the given path
         /// </summary>
         /// <returns>true on success, false if the config file can't be written</returns>
-        public bool Save(string Path)
+        public virtual bool Save(string Path)
         {
             _Path = Path;
             return Save();
@@ -289,7 +289,6 @@ namespace Config
                     return null;
                 }
             }
-            
         }
 
         /// <summary>
@@ -318,10 +317,7 @@ namespace Config
         /// </summary>
         /// <param name="SectionName">Name of the section</param>
         /// <returns>true if it exists, false if not</returns>
-        public bool HasSection(string SectionName)
-        {
-            return (from x in _Sections where x.Name.ToLower() == SectionName.ToLower() select x).Count() == 1;
-        }
+        public bool HasSection(string SectionName) => (from x in _Sections where x.Name.ToLower() == SectionName.ToLower() select x).Count() == 1;
 
         /// <summary>
         /// Checks if the entry exists
@@ -370,19 +366,13 @@ namespace Config
         /// Returns enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public IEnumerator<ConfigSection> GetEnumerator()
-        {
-            return ((IEnumerable<ConfigSection>)_Sections).GetEnumerator();
-        }
+        public IEnumerator<ConfigSection> GetEnumerator() => ((IEnumerable<ConfigSection>)_Sections).GetEnumerator();
 
         /// <summary>
         /// Returns enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return ((IEnumerable<ConfigSection>)_Sections).GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<ConfigSection>)_Sections).GetEnumerator();
 
         /// <summary>
         /// A section of a config
@@ -401,10 +391,7 @@ namespace Config
             /// <summary>
             /// Count of config-entrys in this section
             /// </summary>
-            public int Count
-            {
-                get { return _Entrys.Count; }
-            }
+            public int Count => _Entrys.Count;
 
             /// <summary>
             /// Name of the section
@@ -418,10 +405,7 @@ namespace Config
             /// <summary>
             /// Entrys of the seciton
             /// </summary>
-            public ConfigEntry[] Entrys
-            {
-                get { return _Entrys.ToArray(); }
-            }
+            public ConfigEntry[] Entrys => _Entrys.ToArray();
 
             /// <summary>
             /// Initializes a config-section with the given name
@@ -475,28 +459,19 @@ namespace Config
             /// </summary>
             /// <param name="EntryName">Name of the entry</param>
             /// <returns>true/false</returns>
-            public bool HasEntry(string EntryName)
-            {
-                return (from x in _Entrys where x.Name.ToLower() == EntryName.ToLower() select x).Count() == 1;
-            }
+            public bool HasEntry(string EntryName) => (from x in _Entrys where x.Name.ToLower() == EntryName.ToLower() select x).Count() == 1;
 
             /// <summary>
             /// Returns enumerator
             /// </summary>
             /// <returns>Enumerator</returns>
-            public IEnumerator<ConfigEntry> GetEnumerator()
-            {
-                return ((IEnumerable<ConfigEntry>)_Entrys).GetEnumerator();
-            }
+            public IEnumerator<ConfigEntry> GetEnumerator() => ((IEnumerable<ConfigEntry>)_Entrys).GetEnumerator();
 
             /// <summary>
             /// Returns enumerator
             /// </summary>
             /// <returns>Enumerator</returns>
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return ((IEnumerable<ConfigEntry>)_Entrys).GetEnumerator();
-            }
+            IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<ConfigEntry>)_Entrys).GetEnumerator();
 
             /// <summary>
             /// Returns the config-entry
@@ -516,7 +491,12 @@ namespace Config
                         return null;
                     }
                 }
+                set
+                {
+                    (from x in _Entrys where x.Name.ToLower() == EntryName.ToLower() select x).First().Value = value.ToString();
+                }
             }
+            
 
             /// <summary>
             /// Returns the entry
@@ -566,10 +546,10 @@ namespace Config
             /// <summary>
             /// Value of the entry
             /// </summary>
-            public string Value
+            public object Value
             {
                 get { return _Value; }
-                set { _Value = value; }
+                set { _Value = value.ToString(); }
             }
 
             /// <summary>
@@ -587,10 +567,7 @@ namespace Config
             /// Returns the config-entry value as string
             /// </summary>
             /// <returns>Value as string</returns>
-            public override string ToString()
-            {
-                return _Value;
-            }
+            public override string ToString() => _Value;
 
             /// <summary>
             /// Returns the config-entry value as integer
@@ -601,6 +578,24 @@ namespace Config
                 int value;
 
                 if (int.TryParse(_Value, out value))
+                {
+                    return value;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+
+            /// <summary>
+            /// Returns the config-entry value as unsigned integer
+            /// </summary>
+            /// <returns>Value as unsigned integer</returns>
+            public uint ToUInt()
+            {
+                uint value;
+
+                if (uint.TryParse(_Value, out value))
                 {
                     return value;
                 }
@@ -629,13 +624,28 @@ namespace Config
             }
 
             /// <summary>
+            /// Returns the config-entry value as ulong
+            /// </summary>
+            /// <returns>Value as ulong</returns>
+            public ulong ToULong()
+            {
+                ulong value;
+
+                if (ulong.TryParse(_Value, out value))
+                {
+                    return value;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+
+            /// <summary>
             /// Returns the config-entry value as bool
             /// </summary>
             /// <returns>Value as bool</returns>
-            public bool ToBool()
-            {
-                return _Value.ToLower() == "true" || _Value.ToLower() == "on" || _Value.ToLower() == "1" ? true : false;
-            }
+            public bool ToBool() => _Value.ToLower() == "true" || _Value.ToLower() == "on" || _Value.ToLower() == "1" ? true : false;
 
             /// <summary>
             /// Returns the config-entry value as short
@@ -656,13 +666,28 @@ namespace Config
             }
 
             /// <summary>
+            /// Returns the config-entry value as ushort
+            /// </summary>
+            /// <returns>Value as short</returns>
+            public ushort ToUShort()
+            {
+                ushort value;
+
+                if (ushort.TryParse(_Value, out value))
+                {
+                    return value;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+
+            /// <summary>
             /// Returns the config-entry value as chararray
             /// </summary>
             /// <returns>Value as chararray</returns>
-            public char[] ToCharArray()
-            {
-                return _Value.ToCharArray();
-            }
+            public char[] ToCharArray() => _Value.ToCharArray();
 
             /// <summary>
             /// Returns the config-entry value as DateTime
@@ -686,55 +711,40 @@ namespace Config
             /// Returns the config-entry value as bool
             /// </summary>
             /// <param name="Entry">Config-entry-object</param>
-            public static implicit operator bool(ConfigEntry Entry)
-            {
-                return Entry.ToBool();
-            }
+            public static implicit operator bool(ConfigEntry Entry) => Entry.ToBool();
 
             /// <summary>
             /// Returns the config-entry value as integer
             /// </summary>
             /// <param name="Entry">Config-entry-object</param>
-            public static implicit operator int(ConfigEntry Entry)
-            {
-                return Entry.ToInt();
-            }
+            public static implicit operator int(ConfigEntry Entry) => Entry.ToInt();
 
             /// <summary>
             /// Returns the config-entry value as string
             /// </summary>
             /// <param name="Entry">Config-entry-object</param>
-            public static implicit operator string(ConfigEntry Entry)
-            {
-                return Entry.ToString();
-            }
+            public static implicit operator string(ConfigEntry Entry) => Entry.ToString();
 
             /// <summary>
             /// Returns the config-entry value as short
             /// </summary>
             /// <param name="Entry">Config-entry-object</param>
-            public static implicit operator short(ConfigEntry Entry)
-            {
-                return Entry.ToShort();
-            }
+            public static implicit operator short(ConfigEntry Entry) => Entry.ToShort();
 
             /// <summary>
             /// Returns the config-entry value as DateTime
             /// </summary>
             /// <param name="Entry">Config-entry-object</param>
-            public static implicit operator DateTime(ConfigEntry Entry)
-            {
-                return Entry.ToDateTime();
-            }
+            public static implicit operator DateTime(ConfigEntry Entry) => Entry.ToDateTime();
 
             /// <summary>
             /// Returns the config-entry value as chararray
             /// </summary>
             /// <param name="Entry">Config-entry-object</param>
-            public static implicit operator char[] (ConfigEntry Entry)
-            {
-                return Entry.ToCharArray();
-            }
+            public static implicit operator char[] (ConfigEntry Entry) => Entry.ToCharArray();
+
+
+
         }
     }
 
